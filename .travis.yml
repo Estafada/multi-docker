@@ -1,0 +1,21 @@
+sudo: required
+services: 
+    - docker
+
+before_install:
+    - docker build -t estafada/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true estafada/react-test npm test
+
+after_success:
+    - docker build -t estafada/multi-client ./client
+    - docker build -t estafada/multi-nginx ./nginx
+    - docker build -t estafada/multi-server ./server
+    - docker build -t estafada/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push estafada/multi-client
+    - docker push estafada/multi-nginx
+    - docker push estafada/multi-server
+    - docker push estafada/multi-worker
+
